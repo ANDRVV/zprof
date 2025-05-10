@@ -136,11 +136,13 @@ prof.profiler.liveLog();
 // Zperf [*]: live-bytes=2048 live-peak-bytes=2048
 
 // Log specific allocation events (useful in custom allocators)
+// Is called when logging from init is enabled
 prof.profiler.allocLog(1024);
 // Sample output:
 // Zperf [+][myFunction]: allocated-now=1024
 
 // Log specific deallocation events
+// Is called when logging from init is enabled
 prof.profiler.freeLog(1024);
 // Sample output:
 // Zperf [-][myFunction]: deallocated-now=1024
