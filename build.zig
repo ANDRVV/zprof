@@ -11,7 +11,7 @@ pub fn build(b: *std.Build) void {
     // Create the static library
     const lib = b.addStaticLibrary(.{
         .name = "zprof",
-        .root_source_file = .{ .path = "src/zprof.zig" },
+        .root_source_file = b.path("src/zprof.zig"),
         .target = target,
         .optimize = optimize,
     });
