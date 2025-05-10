@@ -16,6 +16,11 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    // Creates public dep
+    _ = b.addModule("zprof", .{
+        .root_source_file = b.path("src/zprof.zig"),
+    });
+
     // This declares intent for the library to be installed into the standard location
     b.installArtifact(lib);
 }
