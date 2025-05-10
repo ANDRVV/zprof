@@ -4,7 +4,7 @@
 ![Zig](https://img.shields.io/badge/zig-0.14.0-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-`zprof` is a lightweight, easy-to-use memory profiler that helps you track allocations, detect memory leaks, and logs memory changes.
+**zprof** is a lightweight, easy-to-use memory profiler that helps you track allocations, detect memory leaks, and logs memory changes.
 
 ## 📖 Table of Contents
 
