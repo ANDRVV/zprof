@@ -20,7 +20,7 @@
     - [Full Profiler API](#full-profiler-api)
       - [Fields](#fields)
       - [Methods](#methods)
-      - [Methods in logging:](#methods-in-logging)
+      - [Methods in logging](#methods-in-logging)
   - [📝 Examples](#-examples)
     - [Testing for Memory Leaks](#testing-for-memory-leaks)
     - [Tracking Peak Memory Usage](#tracking-peak-memory-usage)
@@ -172,7 +172,7 @@ The `Profiler` struct contains several fields and methods:
 | `actionLog()` | Logs allocation and deallocation counts |
 | `liveLog()` | Logs current memory usage |
 
-#### Methods in logging:
+#### Methods in logging
 
 | Method | Description |
 |--------|-------------|
