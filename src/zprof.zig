@@ -1,5 +1,8 @@
 const std = @import("std");
 
+pub const VERSION = "0.1.3";
+pub const SEMANTIC_VERSION = std.SemanticVersion.parse(VERSION);
+
 /// Profiler struct that tracks memory allocations and deallocations.
 /// Perfect for debugging memory leaks in your applications.
 pub const Profiler = struct {
