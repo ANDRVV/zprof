@@ -4,7 +4,7 @@
 ![Zig](https://img.shields.io/badge/zig-0.14.0-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-`zprof` is a lightweight, easy-to-use memory profiler that helps you track allocations, detect memory leaks, and logs memory changes.
+**zprof** is a lightweight, easy-to-use memory profiler that helps you track allocations, detect memory leaks, and logs memory changes.
 
 ## 📖 Table of Contents
 
@@ -20,7 +20,7 @@
     - [Full Profiler API](#full-profiler-api)
       - [Fields](#fields)
       - [Methods](#methods)
-      - [Methods in logging:](#methods-in-logging)
+      - [Methods in logging](#methods-in-logging)
   - [📝 Examples](#-examples)
     - [Testing for Memory Leaks](#testing-for-memory-leaks)
     - [Tracking Peak Memory Usage](#tracking-peak-memory-usage)
@@ -172,7 +172,7 @@ The `Profiler` struct contains several fields and methods:
 | `actionLog()` | Logs allocation and deallocation counts |
 | `liveLog()` | Logs current memory usage |
 
-#### Methods in logging:
+#### Methods in logging
 
 | Method | Description |
 |--------|-------------|

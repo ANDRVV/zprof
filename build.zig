@@ -11,9 +11,14 @@ pub fn build(b: *std.Build) void {
     // Create the static library
     const lib = b.addStaticLibrary(.{
         .name = "zprof",
-        .root_source_file = .{ .path = "src/zprof.zig" },
+        .root_source_file = b.path("src/zprof.zig"),
         .target = target,
         .optimize = optimize,
+    });
+
+    // Creates public dep
+    _ = b.addModule("zprof", .{
+        .root_source_file = b.path("src/zprof.zig"),
     });
 
     // This declares intent for the library to be installed into the standard location
