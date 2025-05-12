@@ -37,7 +37,7 @@ Add `zprof` to your project's `build.zig.zon`:
     .version = "0.1.0",
     .dependencies = .{
         .zprof = .{
-            .url = "https://github.com/ANDRVV/zprof/archive/v0.1.0.zip",
+            .url = "https://github.com/ANDRVV/zprof/archive/v0.1.3.zip",
             .hash = "...",
         },
     },
@@ -49,12 +49,12 @@ Then in your `build.zig`, add:
 ```zig
 // Add zprof as a dependency
 const zprof_dep = b.dependency("zprof", .{
-    .target = target,
-    .optimize = optimize,
+        .target = target,
+        .optimize = optimize,
 });
 
 // Add the module to your executable
-exe.addModule("zprof", zprof_dep.module("zprof"));
+exe.root_module.addImport("zprof", zprof_dep.module("zprof"));
 ```
 
 ## 🚀 Quick Start
