@@ -1,0 +1,13 @@
+.{
+    .name = .zprof,
+    .version = "0.1.3",
+    .fingerprint = 0xfbea0d4c91061c9,
+    .minimum_zig_version = "0.14.0",
+    .dependencies = .{},
+    .paths = .{
+        "LICENSE",
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}
