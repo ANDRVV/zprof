@@ -1,7 +1,7 @@
 .{
     .name = .zprof,
-    .version = "0.1.3",
-    .fingerprint = 0xfbea0d4c91061c9,
+    .version = "0.1.4",
+    .fingerprint = 0xfbea0d44d0b7267,
     .minimum_zig_version = "0.14.0",
     .dependencies = .{},
     .paths = .{
