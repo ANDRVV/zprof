@@ -34,10 +34,10 @@ Add `zprof` to your project's `build.zig.zon`:
 ```zig
 .{
     .name = "my-project",
-    .version = "0.1.3",
+    .version = "0.1.4",
     .dependencies = .{
         .zprof = .{
-            .url = "https://github.com/ANDRVV/zprof/archive/v0.1.3.zip",
+            .url = "https://github.com/ANDRVV/zprof/archive/v0.1.4.zip",
             .hash = "...",
         },
     },
