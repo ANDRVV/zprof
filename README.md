@@ -1,14 +1,14 @@
-# zprof - A cross-allocator profiler for Zig
+# Zprof - A cross-allocator profiler for Zig
 
 ![Version](https://img.shields.io/badge/version-0.1.3-blue)
 ![Zig](https://img.shields.io/badge/zig-0.14.0-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-**zprof** is a lightweight, easy-to-use memory profiler that helps you track allocations, detect memory leaks, and logs memory changes.
+**Zprof** is a lightweight, easy-to-use memory profiler that helps you track allocations, detect memory leaks, and logs memory changes.
 
 ## 📖 Table of Contents
 
-- [zprof - A cross-allocator profiler for Zig](#zprof---a-cross-allocator-profiler-for-zig)
+- [Zprof - A cross-allocator profiler for Zig](#Zprof---a-cross-allocator-profiler-for-zig)
   - [📖 Table of Contents](#-table-of-contents)
   - [📥 Installation](#-installation)
     - [Using a package manager (Recommended)](#using-a-package-manager-recommended)
@@ -29,7 +29,7 @@
 
 ### Using a package manager (Recommended)
 
-Add `zprof` to your project's `build.zig.zon`:
+Add `Zprof` to your project's `build.zig.zon`:
 
 ```zig
 .{
@@ -47,7 +47,7 @@ Add `zprof` to your project's `build.zig.zon`:
 Then in your `build.zig`, add:
 
 ```zig
-// Add zprof as a dependency
+// Add Zprof as a dependency
 const zprof_dep = b.dependency("zprof", .{
         .target = target,
         .optimize = optimize,
@@ -59,7 +59,7 @@ exe.root_module.addImport("zprof", zprof_dep.module("zprof"));
 
 ## 🚀 Quick Start
 
-Here's how to use `zprof` in three easy steps:
+Here's how to use `Zprof` in three easy steps:
 
 ```zig
 const std = @import("std");
@@ -102,7 +102,7 @@ const tracked_allocator = prof.allocator;
 
 ### Detecting Memory Leaks
 
-`zprof` makes it easy to detect memory leaks in your application:
+`Zprof` makes it easy to detect memory leaks in your application:
 
 ```zig
 // At the end of your program or test
@@ -117,7 +117,7 @@ if (has_leaks) {
 
 ### Logging Options
 
-`zprof` provides several logging functions to help you understand your application's memory usage:
+`Zprof` provides several logging functions to help you understand your application's memory usage:
 
 ```zig
 // Log a complete summary of memory usage
