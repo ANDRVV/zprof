@@ -4,7 +4,6 @@
 //! 
 //! Zprof is a lightweight, easy-to-use memory profiler that helps
 //! you track allocations, detect memory leaks, and logs memory changes.
-//!
 
 const std = @import("std");
 
