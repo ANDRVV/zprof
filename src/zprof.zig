@@ -236,7 +236,7 @@ pub const Zprof = struct {
         // delegate actual remap to wrapped allocator
         const remapped = self.wrapped_allocator.rawRemap(memory, alignment, new_len, return_address);
 
-        if (remapped) {
+        if (remapped != null) {
             const diff = new_len - old_len;
 
             if (diff > 0) {
