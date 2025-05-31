@@ -7,7 +7,7 @@
 
 const std = @import("std");
 
-pub const VERSION = "0.1.4";
+pub const VERSION = "0.2.4";
 pub const SEMANTIC_VERSION = std.SemanticVersion.parse(VERSION) catch unreachable;
 
 /// Profiler struct that tracks memory allocations and deallocations.
