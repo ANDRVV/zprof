@@ -1,7 +1,7 @@
 //! Zprof
-//! 
+//!
 //! Copyright (c) 2025 Andrea Vaccaro
-//! 
+//!
 //! Zprof is a lightweight, easy-to-use memory profiler that helps
 //! you track allocations, detect memory leaks, and logs memory changes.
 
@@ -52,7 +52,7 @@ pub const Profiler = struct {
     /// Great for getting a complete overview of memory usage.
     pub fn sumLog(self: *Self) void {
         std.log.info(
-            "Zperf [*]: {d} allocated-bytes={d} alloc-times={d} free-times={d} live-bytes={d} live-peak-bytes={d}",
+            "Zprof [*]: {d} allocated-bytes={d} alloc-times={d} free-times={d} live-bytes={d} live-peak-bytes={d}",
             .{
                 self.allocated,
                 self.alloc_count,
@@ -66,13 +66,13 @@ pub const Profiler = struct {
     /// Logs allocation and deallocation counts.
     /// Useful for tracking how many memory operations occurred.
     pub fn actionLog(self: *Self) void {
-        std.log.info("Zperf [*]: allocated-bytes={d} alloc-times={d} free-times={d}", .{ self.allocated, self.alloc_count, self.free_count });
+        std.log.info("Zprof [*]: allocated-bytes={d} alloc-times={d} free-times={d}", .{ self.allocated, self.alloc_count, self.free_count });
     }
 
     /// Logs current memory usage statistics.
     /// Shows how much memory is currently active and the highest it's been.
     pub inline fn liveLog(self: *Self) void {
-        std.log.info("Zperf [*]: live-bytes={d} live-peak-bytes={d}", .{
+        std.log.info("Zprof [*]: live-bytes={d} live-peak-bytes={d}", .{
             self.live_bytes,
             self.live_peak,
         });
@@ -83,7 +83,7 @@ pub const Profiler = struct {
     pub inline fn allocLog(self: *Self, allocated_now: usize) void {
         _ = self;
 
-        std.log.info("Zperf [+][{s}]: allocated-now={d}", .{
+        std.log.info("Zprof [+][{s}]: allocated-now={d}", .{
             @src().fn_name,
             allocated_now,
         });
@@ -94,7 +94,7 @@ pub const Profiler = struct {
     pub inline fn freeLog(self: *Self, deallocated_now: usize) void {
         _ = self;
 
-        std.log.info("Zperf [-][{s}]: deallocated-now={d}", .{
+        std.log.info("Zprof [-][{s}]: deallocated-now={d}", .{
             @src().fn_name,
             deallocated_now,
         });
