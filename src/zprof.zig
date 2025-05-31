@@ -52,7 +52,7 @@ pub const Profiler = struct {
     /// Great for getting a complete overview of memory usage.
     pub fn sumLog(self: *Self) void {
         std.log.info(
-            "Zprof [*]: {d} allocated-bytes={d} alloc-times={d} free-times={d} live-bytes={d} live-peak-bytes={d}",
+            "Zprof [*]: allocated-bytes={d} alloc-times={d} free-times={d} live-bytes={d} live-peak-bytes={d}",
             .{
                 self.allocated,
                 self.alloc_count,
@@ -139,7 +139,7 @@ pub const Zprof = struct {
 
     /// The profiling allocator interface.
     /// Use this in your code instead of the original allocator.
-    allocator: std.mem.Allocator,
+    allocator: std.mem.Allocator = undefined,
 
     /// The embedded profiler that keeps track of memory stats.
     /// Access this to check memory usage and detect leaks.
@@ -151,10 +151,19 @@ pub const Zprof = struct {
 
     /// Initialize a new Zprof instance.
     /// Wraps an existing allocator with memory profiling capabilities.
-    pub fn init(allocator: *std.mem.Allocator, log: bool) Self {
+    pub fn init(allocator: *std.mem.Allocator, log: bool) !*Self {
         // create our custom allocator with profiling hooks
-        const self: std.mem.Allocator = .{
-            .ptr = allocator,
+        const zprof_ptr = try allocator.create(Zprof);
+
+        zprof_ptr.* = .{
+            .wrapped_allocator = allocator,
+            .profiler = Profiler{},
+            .log = log,
+            .allocator = undefined,
+        };
+
+        zprof_ptr.allocator = std.mem.Allocator{
+            .ptr = zprof_ptr,
             .vtable = &.{
                 .alloc = alloc,
                 .resize = resize,
@@ -163,12 +172,7 @@ pub const Zprof = struct {
             },
         };
 
-        return .{
-            .wrapped_allocator = allocator,
-            .allocator = self,
-            .profiler = Profiler{},
-            .log = log,
-        };
+        return zprof_ptr;
     }
 
     /// Custom allocation function that tracks memory usage.
