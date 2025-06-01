@@ -7,7 +7,7 @@
 
 const std = @import("std");
 
-pub const VERSION = "0.2.4";
+pub const VERSION = "0.2.5";
 pub const SEMANTIC_VERSION = std.SemanticVersion.parse(VERSION) catch unreachable;
 
 /// Profiler struct that tracks memory allocations and deallocations.
@@ -207,7 +207,7 @@ pub const Zprof = struct {
         const resized = self.wrapped_allocator.rawResize(buf, alignment, new_len, ret_addr);
 
         if (resized) {
-            const diff = new_len - old_len;
+            const diff = if (new_len > old_len) new_len - old_len else old_len - new_len;
 
             if (diff > 0) {
                 @branchHint(.likely);
@@ -241,7 +241,7 @@ pub const Zprof = struct {
         const remapped = self.wrapped_allocator.rawRemap(memory, alignment, new_len, return_address);
 
         if (remapped != null) {
-            const diff = new_len - old_len;
+            const diff = if (new_len > old_len) new_len - old_len else old_len - new_len;
 
             if (diff > 0) {
                 @branchHint(.likely);
