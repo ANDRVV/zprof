@@ -33,10 +33,10 @@ Add `Zprof` to your project's `build.zig.zon`:
 ```zig
 .{
     .name = "my-project",
-    .version = "0.2.6",
+    .version = "1.0.0",
     .dependencies = .{
         .zprof = .{
-            .url = "https://github.com/ANDRVV/zprof/archive/v0.2.6.zip",
+            .url = "https://github.com/ANDRVV/zprof/archive/v1.0.0.zip",
             .hash = "...",
         },
     },
@@ -71,7 +71,7 @@ pub fn main() !void {
     
     // 1. Create a profiler by wrapping your allocator
     var zprof = try zprof.Zprof.init(&gpa_allocator, true); // true enables logging
-    defer gpa_allocator.destroy(zprof);
+    defer zprof.deinit();
     
     // 2. Use the profiler's allocator instead of your original one
     const allocator = zprof.allocator;
@@ -191,6 +191,8 @@ test "no memory leaks" {
     var arena_allocator = arena.allocator();
     
     var zprof = try zprof.Zprof.init(&arena_allocator, false);
+    defer zprof.deinit();
+
     const allocator = zprof.allocator;
     
     // Perform allocations
