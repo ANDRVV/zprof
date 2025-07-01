@@ -71,6 +71,7 @@ pub fn main() !void {
     
     // 1. Create a profiler by wrapping your allocator
     var zprof = try zprof.Zprof.init(&gpa_allocator, true); // true enables logging
+    defer gpa_allocator.destroy(zprof);
     
     // 2. Use the profiler's allocator instead of your original one
     const allocator = zprof.allocator;

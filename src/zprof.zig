@@ -149,8 +149,9 @@ pub const Zprof = struct {
     /// When true, allocation events can be logged to stdout.
     log: bool,
 
-    /// Initialize a new Zprof instance.
-    /// Wraps an existing allocator with memory profiling capabilities.
+    /// Allocates and initializes a new Zprof instance
+    /// Wraps an existing allocator with memory profiling capabilities. The
+    /// caller is responsible for freeing the profiler with `allocator.destroy`.
     pub fn init(allocator: *std.mem.Allocator, log: bool) !*Self {
         // create our custom allocator with profiling hooks
         const zprof_ptr = try allocator.create(Zprof);
