@@ -149,9 +149,9 @@ pub const Zprof = struct {
     /// When true, allocation events can be logged to stdout.
     log: bool,
 
-    /// Allocates and initializes a new Zprof instance
-    /// Wraps an existing allocator with memory profiling capabilities. The
-    /// caller is responsible for freeing the profiler with `allocator.destroy`.
+    /// Allocates and initializes a new Zprof instance.
+    /// Wraps an existing allocator with memory profiling capabilities.
+    /// After, it must be freed with `deinit()` function.
     pub fn init(allocator: *std.mem.Allocator, log: bool) !*Self {
         // create our custom allocator with profiling hooks
         const zprof_ptr = try allocator.create(Zprof);
@@ -278,12 +278,17 @@ pub const Zprof = struct {
         // then actually free the memory
         return self.wrapped_allocator.rawFree(buf, alignment, ret_addr);
     }
+
+    /// Deinitializes self.
+    pub fn deinit(self: *Self) void {
+        self.wrapped_allocator.destroy(self);
+    }
 };
 
 test "live_bytes" {
     var test_allocator = std.testing.allocator;
     var zprof = try Zprof.init(&test_allocator, false);
-    defer test_allocator.destroy(zprof);
+    defer zprof.deinit();
 
     const allocator = zprof.allocator;
     try std.testing.expectEqual(0, zprof.profiler.live_bytes);
@@ -292,7 +297,7 @@ test "live_bytes" {
     errdefer allocator.free(data_a);
     try std.testing.expectEqual(1024, zprof.profiler.live_bytes);
 
-    const data_b = try allocator.create(struct { name:[8]u8 });
+    const data_b = try allocator.create(struct { name: [8]u8 });
     errdefer allocator.destroy(data_b);
     try std.testing.expectEqual(1032, zprof.profiler.live_bytes);
 
