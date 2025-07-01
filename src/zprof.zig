@@ -278,3 +278,28 @@ pub const Zprof = struct {
         return self.wrapped_allocator.rawFree(buf, alignment, ret_addr);
     }
 };
+
+test "live_bytes" {
+    var test_allocator = std.testing.allocator;
+    var zprof = try Zprof.init(&test_allocator, false);
+    defer test_allocator.destroy(zprof);
+
+    const allocator = zprof.allocator;
+    try std.testing.expectEqual(0, zprof.profiler.live_bytes);
+
+    const data_a = try allocator.alloc(u8, 1024);
+    errdefer allocator.free(data_a);
+    try std.testing.expectEqual(1024, zprof.profiler.live_bytes);
+
+    const data_b = try allocator.create(struct { name:[8]u8 });
+    errdefer allocator.destroy(data_b);
+    try std.testing.expectEqual(1032, zprof.profiler.live_bytes);
+
+    allocator.free(data_a);
+    try std.testing.expectEqual(8, zprof.profiler.live_bytes);
+
+    allocator.destroy(data_b);
+    try std.testing.expectEqual(0, zprof.profiler.live_bytes);
+
+    try std.testing.expect(!zprof.profiler.hasLeaks());
+}
