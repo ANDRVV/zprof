@@ -1,6 +1,6 @@
 # Zprof - A cross-allocator profiler for Zig
 
-![Version](https://img.shields.io/badge/version-0.2.6-blue)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![Zig](https://img.shields.io/badge/zig-0.14.0-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
