@@ -8,19 +8,24 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
     const target = b.standardTargetOptions(.{});
 
-    // Create the static library
-    const lib = b.addStaticLibrary(.{
-        .name = "zprof",
+    // Creates public dep
+    const module = b.addModule("zprof", .{
         .root_source_file = b.path("src/zprof.zig"),
         .target = target,
         .optimize = optimize,
     });
 
-    // Creates public dep
-    _ = b.addModule("zprof", .{
-        .root_source_file = b.path("src/zprof.zig"),
+    // Create the static library
+    const lib = b.addStaticLibrary(.{
+        .name = "zprof",
+        .root_module = module,
     });
 
     // This declares intent for the library to be installed into the standard location
     b.installArtifact(lib);
+
+    // Run tests for zprof
+    const run_tests = b.addRunArtifact(b.addTest(.{ .root_module = module }));
+    const test_step = b.step("test", "Run tests");
+    test_step.dependOn(&run_tests.step);
 }
