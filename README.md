@@ -162,7 +162,7 @@ test "no memory leaks" {
     defer arena.deinit();
     var arena_allocator = arena.allocator();
     
-    var zprof = try zprof.Zprof.init(&arena_allocator, false);
+    var zprof = try Zprof.init(&arena_allocator, false);
     defer zprof.deinit();
 
     const allocator = zprof.allocator;
