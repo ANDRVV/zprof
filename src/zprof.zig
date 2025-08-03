@@ -175,7 +175,6 @@ pub const Zprof = struct {
         if (remapped != null) if (diff(new_len, old_len)) |d| {
             if (new_len > old_len) {
                 @branchHint(.likely);
-
                 // growing memory - count as allocation
                 self.profiler.updateAlloc(d);
             } else if (new_len < old_len)
