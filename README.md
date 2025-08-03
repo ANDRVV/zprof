@@ -1,42 +1,48 @@
-# Zprof - A cross-allocator profiler for Zig
+<br><br>
 
-![Version](https://img.shields.io/badge/version-0.2.6-blue)
-![Zig](https://img.shields.io/badge/zig-0.14.0-orange)
-![License](https://img.shields.io/badge/license-MIT-green)
+<div align="center">
+  <img alt="Rapto" src="https://github.com/andrvv/zprof/blob/unstable/assets/zprof-logo.png">
+</div>
 
-**Zprof** is a lightweight, easy-to-use memory profiler that helps you track allocations, detect memory leaks, and logs memory changes.
+<br><br>
+
+## The Zprof cross-allocator profiler
+
+Zprof is a cross-allocator wrapper for profiling memory data.
+
+Developed for use in Debug or official modes, it guarantees nearly the same performance as the wrapped allocator.
+Zprof's development is based on a primary priority: ease of use, improved efficiency, readability, clean, minimal, and well-documented code.
 
 ## 📖 Table of Contents
 
-- [Zprof - A cross-allocator profiler for Zig](#zprof---a-cross-allocator-profiler-for-zig)
-  - [📖 Table of Contents](#-table-of-contents)
-  - [📥 Installation](#-installation)
-    - [Using a package manager (Recommended)](#using-a-package-manager-recommended)
-  - [🚀 Quick Start](#-quick-start)
-  - [🔍 Usage](#-usage)
-    - [Basic Usage](#basic-usage)
-    - [Detecting Memory Leaks](#detecting-memory-leaks)
-    - [Logging Options](#logging-options)
-    - [Full Profiler API](#full-profiler-api)
-      - [Fields](#fields)
-      - [Methods](#methods)
-      - [Methods in logging](#methods-in-logging)
-  - [📝 Examples](#-examples)
-    - [Testing for Memory Leaks](#testing-for-memory-leaks)
+- [The Zprof cross-allocator profiler](#the-zprof-cross-allocator-profiler)
+- [📖 Table of Contents](#-table-of-contents)
+- [📥 Installation](#-installation)
+  - [Using a package manager](#using-a-package-manager)
+- [🚀 Quick Start](#-quick-start)
+- [🔍 Usage](#-usage)
+  - [Basic Usage](#basic-usage)
+  - [Logging](#logging)
+  - [Detecting Memory Leaks](#detecting-memory-leaks)
+  - [Full Profiler API](#full-profiler-api)
+    - [Fields](#fields)
+    - [Methods](#methods)
+- [📝 Examples](#-examples)
+  - [Testing for Memory Leaks](#testing-for-memory-leaks)
 
 ## 📥 Installation
 
-### Using a package manager (Recommended)
+### Using a package manager
 
 Add `Zprof` to your project's `build.zig.zon`:
 
 ```zig
 .{
     .name = "my-project",
-    .version = "1.0.0",
+    .version = "1.1.0",
     .dependencies = .{
         .zprof = .{
-            .url = "https://github.com/ANDRVV/zprof/archive/v1.0.0.zip",
+            .url = "https://github.com/ANDRVV/zprof/archive/v1.1.0.zip",
             .hash = "...",
         },
     },
@@ -56,13 +62,15 @@ const zprof_dep = b.dependency("zprof", .{
 exe.root_module.addImport("zprof", zprof_dep.module("zprof"));
 ```
 
+Else can you you put `zprof.zig` in yours project path and import it.
+
 ## 🚀 Quick Start
 
 Here's how to use `Zprof` in three easy steps:
 
 ```zig
 const std = @import("std");
-const zprof = @import("zprof");
+const Zprof = @import("zprof").Zprof;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -70,8 +78,8 @@ pub fn main() !void {
     var gpa_allocator = gpa.allocator();
     
     // 1. Create a profiler by wrapping your allocator
-    var zprof = try zprof.Zprof.init(&gpa_allocator, true); // true enables logging
-    defer zprof.deinit();
+    var zprof = try Zprof.init(&gpa_allocator, true); // true enables logging
+    defer zprof.deinit(); // deallocates Zprof instance
     
     // 2. Use the profiler's allocator instead of your original one
     const allocator = zprof.allocator;
@@ -79,9 +87,6 @@ pub fn main() !void {
     // 3. Use the allocator as normal
     const data = try allocator.alloc(u8, 1024);
     defer allocator.free(data);
-    
-    // Get memory stats
-    zprof.profiler.sumLog(); // Logs a summary of memory usage
     
     // Check for leaks
     std.debug.print("Has leaks: {}\n", .{zprof.profiler.hasLeaks()});
@@ -95,10 +100,21 @@ pub fn main() !void {
 To start profiling memory usage, simply wrap your allocator with `Zprof`:
 
 ```zig
-var zprof = try zprof.Zprof.init(&allocator, false); // false disables automatic logging
+var zprof = try Zprof.init(&allocator, false); // false disables automatic logging
+const tracked_allocator = zprof.allocator;
+```
+
+### Logging
+
+If logging is enabled, logs allocated/deallocated bytes when allocator
+allocates or deallocates.
+
+```zig
+var zprof = try Zprof.init(&allocator, true); // true enables automatic logging
 const tracked_allocator = zprof.allocator;
 
-// Use tracked_allocator wherever you would use your original allocator
+const data = try allocator.alloc(u8, 1024); // prints: Zprof::ALLOC allocated=1024
+allocator.free(data); // prints: Zprof::FREE deallocated=1024
 ```
 
 ### Detecting Memory Leaks
@@ -111,42 +127,8 @@ const has_leaks = zprof.profiler.hasLeaks();
 if (has_leaks) {
     // Handle leaks (e.g., report, abort in tests)
     std.debug.print("Memory leak detected!\n", .{});
-    zprof.profiler.sumLog(); // Print detailed info about allocations
     return error.MemoryLeak;
 }
-```
-
-### Logging Options
-
-`Zprof` provides several logging functions to help you understand your application's memory usage:
-
-```zig
-// Log a complete summary of memory usage
-zprof.profiler.sumLog();
-// Sample output:
-// Zperf [*]: 2048 allocated-bytes=2048 alloc-times=1 free-times=0 live-bytes=2048 live-peak-bytes=2048
-
-// Log just allocation and deallocation counts
-zprof.profiler.actionLog();
-// Sample output:
-// Zperf [*]: allocated-bytes=2048 alloc-times=1 free-times=0
-
-// Log current memory usage
-zprof.profiler.liveLog();
-// Sample output:
-// Zperf [*]: live-bytes=2048 live-peak-bytes=2048
-
-// Log specific allocation events (useful in custom allocators)
-// Is called when logging from init is enabled
-zprof.profiler.allocLog(1024);
-// Sample output:
-// Zperf [+][myFunction]: allocated-now=1024
-
-// Log specific deallocation events
-// Is called when logging from init is enabled
-zprof.profiler.freeLog(1024);
-// Sample output:
-// Zperf [-][myFunction]: deallocated-now=1024
 ```
 
 ### Full Profiler API
@@ -169,16 +151,6 @@ The `Profiler` struct contains several fields and methods:
 |--------|-------------|
 | `hasLeaks()` | Returns `true` if there are memory leaks |
 | `reset()` | Resets all profiling statistics |
-| `sumLog()` | Logs a summary of all memory statistics |
-| `actionLog()` | Logs allocation and deallocation counts |
-| `liveLog()` | Logs current memory usage |
-
-#### Methods in logging
-
-| Method | Description |
-|--------|-------------|
-| `allocLog(size)` | Logs allocation from allocator calls |
-| `freeLog(size)` | Logs deallocation from allocator calls |
 
 ## 📝 Examples
 
@@ -207,3 +179,5 @@ test "no memory leaks" {
 ---
 
 Made with ❤️ for the Zig community
+
+Copyright (c) 2025 Andrea Vaccaro
