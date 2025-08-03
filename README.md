@@ -1,7 +1,7 @@
 <br><br>
 
 <div align="center">
-  <img alt="Rapto" src="https://github.com/andrvv/zprof/blob/unstable/assets/zprof-logo.png">
+  <img alt="Rapto" src="https://github.com/andrvv/zprof/blob/main/assets/zprof-logo.png">
 </div>
 
 <br><br>
