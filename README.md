@@ -22,6 +22,7 @@ Zprof's development is based on a primary priority: ease of use, improved effici
 - [🚀 Quick Start](#-quick-start)
 - [🔍 Usage](#-usage)
   - [Basic Usage](#basic-usage)
+  - [Thread safe mode](#thread-safe-mode)
   - [Logging](#logging)
   - [Detecting Memory Leaks](#detecting-memory-leaks)
   - [Full Profiler API](#full-profiler-api)
@@ -78,7 +79,9 @@ pub fn main() !void {
     var gpa_allocator = gpa.allocator();
     
     // 1. Create a profiler by wrapping your allocator
-    var zprof = try Zprof.init(&gpa_allocator, true); // true enables logging
+    var zprof = try Zprof(false).init(&gpa_allocator, true);
+    // false disable thread-safe mode and true enables logging
+
     defer zprof.deinit(); // deallocates Zprof instance
     
     // 2. Use the profiler's allocator instead of your original one
@@ -100,7 +103,16 @@ pub fn main() !void {
 To start profiling memory usage, simply wrap your allocator with `Zprof`:
 
 ```zig
-var zprof = try Zprof.init(&allocator, false); // false disables automatic logging
+var zprof = try Zprof(false).init(&allocator, false); // on init, false disables automatic logging
+const tracked_allocator = zprof.allocator;
+```
+
+### Thread safe mode
+
+To use `Zprof` with mutex, you must enable thread-safe mode:
+
+```zig
+var zprof = try Zprof(true).init(&allocator, false); // true enables thread-safe mode
 const tracked_allocator = zprof.allocator;
 ```
 
@@ -110,7 +122,7 @@ If logging is enabled, logs allocated/deallocated bytes when allocator
 allocates or deallocates.
 
 ```zig
-var zprof = try Zprof.init(&allocator, true); // true enables automatic logging
+var zprof = try Zprof(false).init(&allocator, true); // true enables automatic logging
 const tracked_allocator = zprof.allocator;
 
 const data = try allocator.alloc(u8, 1024); // prints: Zprof::ALLOC allocated=1024
@@ -162,7 +174,7 @@ test "no memory leaks" {
     defer arena.deinit();
     var arena_allocator = arena.allocator();
     
-    var zprof = try Zprof.init(&arena_allocator, false);
+    var zprof = try Zprof(false).init(&arena_allocator, false);
     defer zprof.deinit();
 
     const allocator = zprof.allocator;
