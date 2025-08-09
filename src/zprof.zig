@@ -71,8 +71,8 @@ pub const Profiler = struct {
     /// Check if has memory leaks.
     /// Returns true if any allocations weren't properly freed.
     pub inline fn hasLeaks(self: *Self) bool {
-        // if counts don't match or there's still memory around, we have leaks
-        return (self.alloc_count != self.free_count) or (self.live_bytes > 0);
+        // Counts not matching doesn't necessarily mean memory is leaked because of remap and resize
+        return self.live_bytes > 0;
     }
 
     /// Resets all profiling statistics.
