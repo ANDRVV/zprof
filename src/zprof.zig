@@ -282,3 +282,27 @@ test "live_bytes" {
 
     try std.testing.expect(!zprof.profiler.hasLeaks());
 }
+
+// This test exists to test the behaviour of Profiler.hasLeaks()
+test "memory_leak" {
+    // page allocator is used instead of testing allocator because testing allocator does not support resize or remap
+    var backing_allocator = std.heap.page_allocator;
+    var zprof = try Zprof(false).init(&backing_allocator, false);
+    defer zprof.deinit();
+
+    const allocator = zprof.allocator;
+
+    var slice = try allocator.alloc(u8, 20);
+    {
+        errdefer allocator.free(slice);
+        if (allocator.remap(slice, 10)) |new_slice| {
+            slice = new_slice;
+        } else return error.RemapFailed;
+    }
+    allocator.free(slice);
+    // Should return false since all memory is freed
+    if (zprof.profiler.hasLeaks()) {
+        std.debug.print("Allocations: {d}\nFrees: {d}\n", .{ zprof.profiler.alloc_count, zprof.profiler.free_count });
+        return error.MemoryLeakReported;
+    }
+}
