@@ -269,16 +269,21 @@ test "live_bytes" {
     try std.testing.expectEqual(0, zprof.profiler.live_bytes);
 
     const data_a = try allocator.alloc(u8, 1024);
-    errdefer allocator.free(data_a);
-    try std.testing.expectEqual(1024, zprof.profiler.live_bytes);
-
+    {
+        errdefer allocator.free(data_a);
+        try std.testing.expectEqual(1024, zprof.profiler.live_bytes);
+    }
     const data_b = try allocator.create(struct { name: [8]u8 });
-    errdefer allocator.destroy(data_b);
-    try std.testing.expectEqual(1032, zprof.profiler.live_bytes);
-
-    allocator.free(data_a);
-    try std.testing.expectEqual(8, zprof.profiler.live_bytes);
-
+    {
+        errdefer allocator.free(data_a);
+        errdefer allocator.destroy(data_b);
+        try std.testing.expectEqual(1032, zprof.profiler.live_bytes);
+    }
+    {
+        errdefer allocator.destroy(data_b);
+        allocator.free(data_a);
+        try std.testing.expectEqual(8, zprof.profiler.live_bytes);
+    }
     allocator.destroy(data_b);
     try std.testing.expectEqual(0, zprof.profiler.live_bytes);
 
