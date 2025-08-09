@@ -59,7 +59,9 @@ pub const Profiler = struct {
     /// Updates profiler simulating free.
     /// Called internally whenever memory is freed.
     inline fn updateFree(self: *Self, size: u64) void {
-        // decrease live bytes and increment free counter
+        // Decrease live bytes and increment free counter
+        // This can underflow in the case of invalid frees
+        // Don't know if that's a problem
         self.live_bytes -= size;
         self.free_count += 1;
 
