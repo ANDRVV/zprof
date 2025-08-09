@@ -59,7 +59,9 @@ pub const Profiler = struct {
     /// Updates profiler simulating free.
     /// Called internally whenever memory is freed.
     inline fn updateFree(self: *Self, size: u64) void {
-        // decrease live bytes and increment free counter
+        // Decrease live bytes and increment free counter
+        // This can underflow in the case of invalid frees
+        // Don't know if that's a problem
         self.live_bytes -= size;
         self.free_count += 1;
 
@@ -69,8 +71,8 @@ pub const Profiler = struct {
     /// Check if has memory leaks.
     /// Returns true if any allocations weren't properly freed.
     pub inline fn hasLeaks(self: *Self) bool {
-        // if counts don't match or there's still memory around, we have leaks
-        return (self.alloc_count != self.free_count) or (self.live_bytes > 0);
+        // Counts not matching doesn't necessarily mean memory is leaked because of remap and resize
+        return self.live_bytes > 0;
     }
 
     /// Resets all profiling statistics.
@@ -267,18 +269,47 @@ test "live_bytes" {
     try std.testing.expectEqual(0, zprof.profiler.live_bytes);
 
     const data_a = try allocator.alloc(u8, 1024);
-    errdefer allocator.free(data_a);
-    try std.testing.expectEqual(1024, zprof.profiler.live_bytes);
-
+    {
+        errdefer allocator.free(data_a);
+        try std.testing.expectEqual(1024, zprof.profiler.live_bytes);
+    }
     const data_b = try allocator.create(struct { name: [8]u8 });
-    errdefer allocator.destroy(data_b);
-    try std.testing.expectEqual(1032, zprof.profiler.live_bytes);
-
-    allocator.free(data_a);
-    try std.testing.expectEqual(8, zprof.profiler.live_bytes);
-
+    {
+        errdefer allocator.free(data_a);
+        errdefer allocator.destroy(data_b);
+        try std.testing.expectEqual(1032, zprof.profiler.live_bytes);
+    }
+    {
+        errdefer allocator.destroy(data_b);
+        allocator.free(data_a);
+        try std.testing.expectEqual(8, zprof.profiler.live_bytes);
+    }
     allocator.destroy(data_b);
     try std.testing.expectEqual(0, zprof.profiler.live_bytes);
 
     try std.testing.expect(!zprof.profiler.hasLeaks());
+}
+
+// This test exists to test the behaviour of Profiler.hasLeaks()
+test "memory_leak" {
+    // page allocator is used instead of testing allocator because testing allocator does not support resize or remap
+    var backing_allocator = std.heap.page_allocator;
+    var zprof = try Zprof(false).init(&backing_allocator, false);
+    defer zprof.deinit();
+
+    const allocator = zprof.allocator;
+
+    var slice = try allocator.alloc(u8, 20);
+    {
+        errdefer allocator.free(slice);
+        if (allocator.remap(slice, 10)) |new_slice| {
+            slice = new_slice;
+        } else return error.RemapFailed;
+    }
+    allocator.free(slice);
+    // Should return false since all memory is freed
+    if (zprof.profiler.hasLeaks()) {
+        std.debug.print("Allocations: {d}\nFrees: {d}\n", .{ zprof.profiler.alloc_count, zprof.profiler.free_count });
+        return error.MemoryLeakReported;
+    }
 }
