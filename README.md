@@ -63,7 +63,9 @@ const zprof_dep = b.dependency("zprof", .{
 exe.root_module.addImport("zprof", zprof_dep.module("zprof"));
 ```
 
-Else can you you put `zprof.zig` in yours project path and import it.
+Else you can put `zprof.zig` in your project's path and import it.
+
+Zig version 0.15.1 or newer is required to compile Zprof
 
 ## 🚀 Quick Start
 
@@ -71,28 +73,33 @@ Here's how to use `Zprof` in three easy steps:
 
 ```zig
 const std = @import("std");
-const Zprof = @import("zprof").Zprof;
+const Zprof = @import("zprof.zig").Zprof;
 
 pub fn main() !void {
+    var stdout_buf: [4096]u8 = undefined;
+    var stdout_writer = std.fs.File.stdout().writer(&stdout_buf);
+    const stdout = &stdout_writer.interface;
+    defer stdout.flush() catch {};
+
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     var gpa_allocator = gpa.allocator();
-    
+
     // 1. Create a profiler by wrapping your allocator
-    var zprof = try Zprof(false).init(&gpa_allocator, true);
-    // false disable thread-safe mode and true enables logging
+    var zprof = try Zprof(false).init(&gpa_allocator, stdout);
+    // false disable thread-safe mode and passing in a writer enables logging
 
     defer zprof.deinit(); // deallocates Zprof instance
-    
+
     // 2. Use the profiler's allocator instead of your original one
     const allocator = zprof.allocator;
-    
+
     // 3. Use the allocator as normal
     const data = try allocator.alloc(u8, 1024);
     defer allocator.free(data);
-    
+
     // Check for leaks
-    std.debug.print("Has leaks: {}\n", .{zprof.profiler.hasLeaks()});
+    stdout.print("Has leaks: {}\n", .{zprof.profiler.hasLeaks()}) catch {};
 }
 ```
 
@@ -103,7 +110,7 @@ pub fn main() !void {
 To start profiling memory usage, simply wrap your allocator with `Zprof`:
 
 ```zig
-var zprof = try Zprof(false).init(&allocator, false); // on init, false disables automatic logging
+var zprof = try Zprof(false).init(&allocator, null); // on init, null disables automatic logging
 const tracked_allocator = zprof.allocator;
 ```
 
@@ -112,7 +119,7 @@ const tracked_allocator = zprof.allocator;
 To use `Zprof` with mutex, you must enable thread-safe mode:
 
 ```zig
-var zprof = try Zprof(true).init(&allocator, false); // true enables thread-safe mode
+var zprof = try Zprof(true).init(&allocator, null); // true enables thread-safe mode
 const tracked_allocator = zprof.allocator;
 ```
 
@@ -122,7 +129,7 @@ If logging is enabled, logs allocated/deallocated bytes when allocator
 allocates or deallocates.
 
 ```zig
-var zprof = try Zprof(false).init(&allocator, true); // true enables automatic logging
+var zprof = try Zprof(false).init(&allocator, arraylist_writer); // Passing in a writer enables automatic logging
 const tracked_allocator = zprof.allocator;
 
 const data = try allocator.alloc(u8, 1024); // prints: Zprof::ALLOC allocated=1024
@@ -174,7 +181,7 @@ test "no memory leaks" {
     defer arena.deinit();
     var arena_allocator = arena.allocator();
     
-    var zprof = try Zprof(false).init(&arena_allocator, false);
+    var zprof = try Zprof(false).init(&arena_allocator, null);
     defer zprof.deinit();
 
     const allocator = zprof.allocator;
