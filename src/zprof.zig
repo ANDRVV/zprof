@@ -20,9 +20,8 @@ pub const SEMANTIC_VERSION = std.SemanticVersion.parse(VERSION) catch unreachabl
 pub const Profiler = struct {
     const Self = @This();
 
-    /// Controls whether logging is enabled.
-    /// When true, allocation events can be logged to stdout.
-    log: bool,
+    /// When not null allocation events are logged using this writer
+    log_writer: ?*std.Io.Writer,
 
     /// Allocated bytes from initialization.
     /// Keeps track of total bytes requested during the program's lifetime.
@@ -53,7 +52,7 @@ pub const Profiler = struct {
         // update peak if needed
         self.live_peak = @max(self.live_bytes, self.live_peak);
 
-        if (self.log) std.debug.print("Zprof::ALLOC allocated={d}\n", .{size});
+        if (self.log_writer) |writer| writer.print("Zprof::ALLOC allocated={d}\n", .{size}) catch {};
     }
 
     /// Updates profiler simulating free.
@@ -65,7 +64,7 @@ pub const Profiler = struct {
         self.live_bytes -= size;
         self.free_count += 1;
 
-        if (self.log) std.debug.print("Zprof::FREE deallocated={d}\n", .{size});
+        if (self.log_writer) |writer| writer.print("Zprof::FREE deallocated={d}\n", .{size}) catch {};
     }
 
     /// Check if has memory leaks.
@@ -105,13 +104,13 @@ pub fn Zprof(comptime thread_safe: bool) type {
         /// Allocates and initializes a new Zprof instance.
         /// Wraps an existing allocator with memory profiling capabilities.
         /// After, it must be freed with `deinit()` function.
-        pub fn init(allocator: *std.mem.Allocator, log: bool) !*Self {
+        pub fn init(allocator: *std.mem.Allocator, log_writer: ?*std.Io.Writer) !*Self {
             // create our custom allocator with profiling hooks
             const zprof_ptr = try allocator.create(Self);
 
             zprof_ptr.* = .{
                 .wrapped_allocator = allocator,
-                .profiler = Profiler{ .log = log },
+                .profiler = Profiler{ .log_writer = log_writer },
                 .allocator = undefined,
             };
 
