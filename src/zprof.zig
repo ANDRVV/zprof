@@ -20,7 +20,7 @@ pub const SEMANTIC_VERSION = std.SemanticVersion.parse(VERSION) catch unreachabl
 pub const Profiler = struct {
     const Self = @This();
 
-    /// When not null allocation events are logged using this writer
+    /// Writer of output when allocation or deallocation is occurred.
     log_writer: ?*std.Io.Writer,
 
     /// Allocated bytes from initialization.
@@ -87,6 +87,11 @@ pub fn Zprof(comptime thread_safe: bool) type {
     return struct {
         const Self = @This();
 
+        /// The synchronization primitive ensuring
+        /// only one thread is in the critical section.
+        /// Used when thread_safe is enabled.
+        mutex: std.Thread.Mutex = .{},
+
         /// The original allocator we're wrapping.
         /// All actual memory operations will be delegated to this.
         wrapped_allocator: *std.mem.Allocator,
@@ -98,8 +103,6 @@ pub fn Zprof(comptime thread_safe: bool) type {
         /// The embedded profiler that keeps track of memory stats.
         /// Access this to check memory usage and detect leaks.
         profiler: Profiler,
-
-        mutex: std.Thread.Mutex = .{},
 
         /// Allocates and initializes a new Zprof instance.
         /// Wraps an existing allocator with memory profiling capabilities.
