@@ -260,7 +260,7 @@ inline fn diff(a: usize, b: usize) ?usize {
 
 test "live bytes" {
     var test_allocator = std.testing.allocator;
-    var zprof = try Zprof(false).init(&test_allocator, false);
+    var zprof = try Zprof(false).init(&test_allocator, null);
     defer zprof.deinit();
 
     const allocator = zprof.allocator;
@@ -285,7 +285,7 @@ test "live bytes" {
 
 test "memory leak" {
     var test_allocator = std.testing.allocator;
-    var zprof = try Zprof(false).init(&test_allocator, false);
+    var zprof = try Zprof(false).init(&test_allocator, null);
     defer zprof.deinit();
 
     const allocator = zprof.allocator;
