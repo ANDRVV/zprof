@@ -137,10 +137,8 @@ pub fn Zprof(comptime thread_safe: bool) type {
         ) ?[*]u8 {
             const self: *Self = @ptrCast(@alignCast(ctx));
 
-            if (thread_safe) {
-                self.mutex.lock();
-                defer self.mutex.unlock();
-            }
+            if (thread_safe) self.mutex.lock();
+            defer if (thread_safe) self.mutex.unlock();
 
             // delegate actual allocation to wrapped allocator
             const ptr = self.wrapped_allocator.rawAlloc(n, alignment, ra);
@@ -164,10 +162,8 @@ pub fn Zprof(comptime thread_safe: bool) type {
             const self: *Self = @ptrCast(@alignCast(ctx));
             const old_len = buf.len;
 
-            if (thread_safe) {
-                self.mutex.lock();
-                defer self.mutex.unlock();
-            }
+            if (thread_safe) self.mutex.lock();
+            defer if (thread_safe) self.mutex.unlock();
 
             // delegate actual resize to wrapped allocator
             const resized = self.wrapped_allocator.rawResize(buf, alignment, new_len, ret_addr);
@@ -197,10 +193,8 @@ pub fn Zprof(comptime thread_safe: bool) type {
             const self: *Self = @ptrCast(@alignCast(context));
             const old_len = memory.len;
 
-            if (thread_safe) {
-                self.mutex.lock();
-                defer self.mutex.unlock();
-            }
+            if (thread_safe) self.mutex.lock();
+            defer if (thread_safe) self.mutex.unlock();
 
             // delegate actual remap to wrapped allocator
             const remapped = self.wrapped_allocator.rawRemap(memory, alignment, new_len, return_address);
@@ -228,10 +222,8 @@ pub fn Zprof(comptime thread_safe: bool) type {
         ) void {
             const self: *Self = @ptrCast(@alignCast(ctx));
 
-            if (thread_safe) {
-                self.mutex.lock();
-                defer self.mutex.unlock();
-            }
+            if (thread_safe) self.mutex.lock();
+            defer if (thread_safe) self.mutex.unlock();
 
             // update profiler stats first
             self.profiler.updateFree(buf.len);
