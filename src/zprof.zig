@@ -6,13 +6,13 @@
 //! memory profiler that helps you track
 //! allocations, detect memory leaks,
 //! and logs memory changes.
-//! Version 1.2.1
+//! Version 1.3.0
 //!
 //! Original repository: https://github.com/andrvv/zprof
 
 const std = @import("std");
 
-pub const VERSION = "1.2.1";
+pub const VERSION = "1.3.0";
 pub const SEMANTIC_VERSION = std.SemanticVersion.parse(VERSION) catch unreachable;
 
 /// Profiler struct that tracks memory allocations and deallocations.
