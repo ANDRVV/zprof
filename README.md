@@ -63,7 +63,9 @@ const zprof_dep = b.dependency("zprof", .{
 exe.root_module.addImport("zprof", zprof_dep.module("zprof"));
 ```
 
-Else can you you put `zprof.zig` in yours project path and import it.
+Else you can put `zprof.zig` in your project's path and import it.
+
+Zig version 0.15.1 or newer is required to compile Zprof
 
 ## 🚀 Quick Start
 
