@@ -46,9 +46,9 @@ pub const Profiler = struct {
     /// Called internally whenever memory is allocated.
     inline fn updateAlloc(self: *Self, size: u64) void {
         // track the bytes and count
-        self.allocated += size;
-        self.live_bytes += size;
-        self.alloc_count += 1;
+        self.allocated +|= size;
+        self.live_bytes +|= size;
+        self.alloc_count +|= 1;
         // update peak if needed
         self.live_peak = @max(self.live_bytes, self.live_peak);
 
@@ -58,11 +58,9 @@ pub const Profiler = struct {
     /// Updates profiler simulating free.
     /// Called internally whenever memory is freed.
     inline fn updateFree(self: *Self, size: u64) void {
-        // Decrease live bytes and increment free counter
-        // This can underflow in the case of invalid frees
-        // Don't know if that's a problem
-        self.live_bytes -= size;
-        self.free_count += 1;
+        // decrease live bytes and increment free counter
+        self.live_bytes -|= size;
+        self.free_count +|= 1;
 
         if (self.log_writer) |writer| writer.print("Zprof::FREE deallocated={d}\n", .{size}) catch {};
     }
@@ -228,11 +226,12 @@ pub fn Zprof(comptime thread_safe: bool) type {
             if (thread_safe) self.mutex.lock();
             defer if (thread_safe) self.mutex.unlock();
 
-            // update profiler stats first
-            self.profiler.updateFree(buf.len);
+            // update profiler stats with old buf
+            // length info after memory free
+            defer self.profiler.updateFree(buf.len);
 
-            // then actually free the memory
-            return self.wrapped_allocator.rawFree(buf, alignment, ret_addr);
+            // free the memory
+            self.wrapped_allocator.rawFree(buf, alignment, ret_addr);
         }
 
         /// Deinitializes self.
