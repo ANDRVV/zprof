@@ -2,7 +2,7 @@
     .name = .zprof,
     .version = "1.2.1",
     .fingerprint = 0xfbea0d44d0b7267,
-    .minimum_zig_version = "0.14.0",
+    .minimum_zig_version = "0.15.0",
     .dependencies = .{},
     .paths = .{
         "LICENSE",
