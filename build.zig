@@ -16,9 +16,10 @@ pub fn build(b: *std.Build) void {
     });
 
     // Create the static library
-    const lib = b.addStaticLibrary(.{
+    const lib = b.addLibrary(.{
         .name = "zprof",
         .root_module = module,
+        .linkage = .static,
     });
 
     // This declares intent for the library to be installed into the standard location
