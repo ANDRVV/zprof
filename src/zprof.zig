@@ -6,13 +6,13 @@
 //! that wraps any allocator written in Zig.
 //! Tracks allocations, detects memory leaks, and logs
 //! memory changes with optional thread-safe mode.
-//! Version 2.0.0
+//! Version 2.1.0
 //!
 //! Original repository: https://github.com/andrvv/zprof
 
 const std = @import("std");
 
-pub const VERSION = "2.0.0";
+pub const VERSION = "2.1.0";
 
 /// Collects allocation, deallocation, and live memory statistics.
 pub fn Profiler(comptime thread_safe: bool) type {
