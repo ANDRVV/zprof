@@ -1,10 +1,10 @@
-# The Zprof cross-allocator profiler
+# The Zprof cross-allocator profiler for Zig
 
 ![Version](https://img.shields.io/badge/version-2.0.0-blue)
 ![Zig](https://img.shields.io/badge/zig-0.15.1-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-Zprof is a zero-overhead, zero-dependency memory profiler that wraps any allocator written in Zig.
+**Zprof** is a zero-overhead, zero-dependency memory profiler that wraps any allocator written in Zig.
 Tracks allocations, detects memory leaks, and logs memory changes with optional thread-safe mode.
 
 <br>
@@ -14,7 +14,7 @@ Zprof's development is based on a primary priority: ease of use, improved effici
 
 ## 📖 Table of Contents
 
-- [The Zprof cross-allocator profiler](#the-zprof-cross-allocator-profiler)
+- [The Zprof cross-allocator profiler for Zig](#the-zprof-cross-allocator-profiler-for-zig)
   - [📖 Table of Contents](#-table-of-contents)
   - [📥 Installation](#-installation)
     - [Using a package manager](#using-a-package-manager)
