@@ -1,4 +1,4 @@
-# The Zprof cross-allocator profiler for Zig
+# Zprof - A cross-allocator profiler for Zig
 
 ![Version](https://img.shields.io/badge/version-2.0.0-blue)
 ![Zig](https://img.shields.io/badge/zig-0.15.1-orange)
@@ -14,7 +14,7 @@ Zprof's development is based on a primary priority: ease of use, improved effici
 
 ## 📖 Table of Contents
 
-- [The Zprof cross-allocator profiler for Zig](#the-zprof-cross-allocator-profiler-for-zig)
+- [Zprof - A cross-allocator profiler for Zig](#zprof---a-cross-allocator-profiler-for-zig)
   - [📖 Table of Contents](#-table-of-contents)
   - [📥 Installation](#-installation)
     - [Using a package manager](#using-a-package-manager)
