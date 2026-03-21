@@ -80,12 +80,7 @@ pub fn Profiler(comptime thread_safe: bool) type {
         /// Check if has memory leaks.
         /// Returns true if any allocations weren't properly freed.
         pub fn hasLeaks(self: *const Self) bool {
-            const live_bytes = if (thread_safe)
-                self.live_bytes.load(.monotonic)
-            else
-                self.live_bytes.raw;
-
-            return live_bytes > 0;
+            return self.getLiveBytes() > 0;
         }
 
         pub fn reset(self: *Self) void {
