@@ -191,6 +191,7 @@ pub fn Zprof(comptime thread_safe: bool) type {
             };
 
             if (success) {
+                @branchHint(.likely);
                 const order, const diff = absDiff(new_len, old_len);
                 switch (order) {
                     .gt => self.profiler.updateAlloc(diff),
@@ -225,6 +226,7 @@ pub fn Zprof(comptime thread_safe: bool) type {
             };
 
             if (new_buf != null) {
+                @branchHint(.likely);
                 const order, const diff = absDiff(new_len, old_len);
                 switch (order) {
                     .gt => self.profiler.updateAlloc(diff),
