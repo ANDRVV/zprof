@@ -23,21 +23,21 @@ pub fn Profiler(comptime thread_safe: bool) type {
 
         /// Allocated bytes from initialization.
         /// Keeps track of total bytes requested during the program's lifetime.
-        allocated: std.atomic.Value(usize) = .init(0),
+        allocated: std.atomic.Value(usize) align(std.atomic.cache_line) = .init(0),
 
         /// Count of allocations from alloc/realloc.
         /// Every time memory is allocated, this counter increases.
-        alloc_count: std.atomic.Value(usize) = .init(0),
+        alloc_count: std.atomic.Value(usize) align(std.atomic.cache_line) = .init(0),
         /// Count of deallocations from free/realloc/deinit.
         /// Every time memory is freed, this counter increases.
-        free_count: std.atomic.Value(usize) = .init(0),
+        free_count: std.atomic.Value(usize) align(std.atomic.cache_line) = .init(0),
 
         /// Peak of live bytes.
         /// Tracks the maximum memory usage at any point during execution.
-        live_peak: std.atomic.Value(usize) = .init(0),
+        live_peak: std.atomic.Value(usize) align(std.atomic.cache_line) = .init(0),
         /// Current live bytes.
         /// Shows how much memory is currently in use.
-        live_bytes: std.atomic.Value(usize) = .init(0),
+        live_bytes: std.atomic.Value(usize) align(std.atomic.cache_line) = .init(0),
 
         pub fn init(writer: ?*std.Io.Writer) Self {
             return .{ .writer = writer };
