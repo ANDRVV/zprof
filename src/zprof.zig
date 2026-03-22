@@ -104,9 +104,10 @@ pub fn Profiler(comptime config: Config) type {
         /// Shows how much memory is currently in use.
         live_bytes: if (config.live_bytes) DefaultCounter else struct {} = .{},
 
-        writer: *std.Io.Writer,
+        writer: WriterType,
+        const WriterType = if (config.writerFn != null) *std.Io.Writer else void;
 
-        pub fn init(writer: *std.Io.Writer) Self {
+        pub fn init(writer: WriterType) Self {
             return .{ .writer = writer };
         }
 
@@ -133,7 +134,7 @@ pub fn Profiler(comptime config: Config) type {
         }
 
         pub fn reset(self: *Self) void {
-            self.* = .init(self.writer);
+            self.* = .init(if (config.writerFn != null) self.writer else {});
         }
     };
 }
@@ -146,14 +147,14 @@ pub fn Zprof(comptime config: Config) type {
         const Self = @This();
 
         child_allocator: std.mem.Allocator,
-        mutex: std.Thread.Mutex = .{},
+        mutex: if (config.thread_safe) std.Thread.Mutex else struct {} = .{},
 
         profiler: Profiler(config),
 
         pub fn init(child_allocator: std.mem.Allocator, writer: *std.Io.Writer) Self {
             return .{
                 .child_allocator = child_allocator,
-                .profiler = .init(writer),
+                .profiler = .init(if (config.writerFn != null) writer else {}),
             };
         }
 
@@ -186,6 +187,7 @@ pub fn Zprof(comptime config: Config) type {
 
             if (ptr != null) {
                 @branchHint(.likely);
+                // this function is protected with atomics
                 self.profiler.updateAlloc(n);
             }
 
@@ -217,6 +219,7 @@ pub fn Zprof(comptime config: Config) type {
             if (success) {
                 @branchHint(.likely);
                 const order, const diff = absDiff(new_len, old_len);
+                // these functions are protected with atomics
                 switch (order) {
                     .gt => self.profiler.updateAlloc(diff),
                     .lt => self.profiler.updateFree(diff),
@@ -252,6 +255,7 @@ pub fn Zprof(comptime config: Config) type {
             if (new_buf != null) {
                 @branchHint(.likely);
                 const order, const diff = absDiff(new_len, old_len);
+                // these functions are protected with atomics
                 switch (order) {
                     .gt => self.profiler.updateAlloc(diff),
                     .lt => self.profiler.updateFree(diff),
@@ -277,6 +281,7 @@ pub fn Zprof(comptime config: Config) type {
                 self.child_allocator.rawFree(buf, alignment, ret_addr);
             }
 
+            // this function is protected with atomics
             self.profiler.updateFree(buf.len);
         }
     };
