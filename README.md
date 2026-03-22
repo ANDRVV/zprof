@@ -4,7 +4,8 @@
 ![Zig](https://img.shields.io/badge/zig-0.15.1-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-**Zprof** is a zero-overhead, zero-dependency memory profiler that wraps any allocator written in Zig.
+**Zprof** is a zero-dependency memory profiler that wraps any allocator written in Zig.
+It minimizes overhead by compiling away any metric you don't enable — you pay only for what you measure.
 Tracks allocations, detects memory leaks, and logs memory changes with optional thread-safe mode.
 
 Developed for use in Debug or official modes, it guarantees nearly the same performance as the wrapped allocator.
