@@ -1,13 +1,11 @@
 # Zprof - A cross-allocator profiler for Zig
 
-![Version](https://img.shields.io/badge/version-2.1.0-blue)
+![Version](https://img.shields.io/badge/version-3.0.0-blue)
 ![Zig](https://img.shields.io/badge/zig-0.15.1-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **Zprof** is a zero-overhead, zero-dependency memory profiler that wraps any allocator written in Zig.
 Tracks allocations, detects memory leaks, and logs memory changes with optional thread-safe mode.
-
-<br>
 
 Developed for use in Debug or official modes, it guarantees nearly the same performance as the wrapped allocator.
 Zprof's development is based on a primary priority: ease of use, improved efficiency, readability, clean, minimal, and well-documented code.
@@ -16,6 +14,7 @@ Zprof's development is based on a primary priority: ease of use, improved effici
 
 - [Zprof - A cross-allocator profiler for Zig](#zprof---a-cross-allocator-profiler-for-zig)
   - [📖 Table of Contents](#-table-of-contents)
+  - [🧪 Benchmark \& Testing](#-benchmark--testing)
   - [📥 Installation](#-installation)
     - [Using a package manager](#using-a-package-manager)
   - [🚀 Quick Start](#-quick-start)
@@ -24,10 +23,36 @@ Zprof's development is based on a primary priority: ease of use, improved effici
     - [Thread safe mode](#thread-safe-mode)
     - [Logging](#logging)
     - [Detecting Memory Leaks](#detecting-memory-leaks)
+    - [Configuration](#configuration)
     - [Full Profiler API](#full-profiler-api)
+      - [Fields](#fields)
       - [Methods](#methods)
   - [📝 Examples](#-examples)
     - [Testing for Memory Leaks](#testing-for-memory-leaks)
+
+## 🧪 Benchmark & Testing
+
+Run the test suite with:
+
+```sh
+zig build test
+```
+
+Run the benchmark with:
+
+```sh
+zig build benchmark
+```
+
+Tested on `cpu=i7-12700H zig-version=0.15.1`
+```
+Alloc/free benchmark [bytes=16 ops=10000000]
+Raw allocator:   tot=80274902ns
+Zprof allocator: tot=102280564ns
+Baseline overhead (Wrapper): +7.87%
+Bookkeeping overhead:        +19.54%
+Total overhead:              +27.41%
+```
 
 ## 📥 Installation
 
@@ -38,10 +63,10 @@ Add `Zprof` to your project's `build.zig.zon`:
 ```zig
 .{
     .name = "my-project",
-    .version = "2.1.0",
+    .version = "3.0.0",
     .dependencies = .{
         .zprof = .{
-            .url = "https://github.com/ANDRVV/zprof/archive/v2.1.0.zip",
+            .url = "https://github.com/ANDRVV/zprof/archive/v3.0.0.zip",
             .hash = "...",
         },
     },
@@ -80,9 +105,9 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
 
-    // 1. Create a profiler by wrapping your allocator
-    var zprof: Zprof(false) = .init(gpa.allocator(), stdout);
-    // false disables thread-safe mode, passing a writer enables logging
+    // 1. Create a profiler by wrapping your allocator with a Config
+    var zprof: Zprof(.{}) = .init(gpa.allocator(), stdout);
+    // .{} uses the default config (thread_safe = false, all metrics enabled)
 
     // 2. Use the profiler's allocator instead of your original one
     const allocator = zprof.allocator();
@@ -102,29 +127,33 @@ pub fn main() !void {
 To start profiling memory usage, simply wrap your allocator with `Zprof`:
 
 ```zig
-var zprof: Zprof(false) = .init(allocator, null); // null disables automatic logging
+var zprof: Zprof(.{}) = .init(allocator, undefined); // .{} uses default config
 const tracked_allocator = zprof.allocator();
 ```
 
 ### Thread safe mode
 
-To use `Zprof` with mutex protection on the child allocator, enable thread-safe mode:
+To use `Zprof` with mutex protection on the child allocator, enable thread-safe mode via `Config`:
 
 ```zig
-var zprof: Zprof(true) = .init(allocator, null); // true enables thread-safe mode
+var zprof: Zprof(.{ .thread_safe = true }) = .init(allocator, undefined);
 const tracked_allocator = zprof.allocator();
 ```
 
 ### Logging
 
-If logging is enabled, Zprof prints allocated/deallocated bytes on every allocation and deallocation.
+Logging is configured by providing a `writerFn` in the `Config` struct. The function receives the writer, a boolean indicating allocation or deallocation, and the size in bytes.
 
 ```zig
-var zprof: Zprof(false) = .init(allocator, writer); // passing a writer enables logging
+fn myLogger(writer: *std.Io.Writer, is_alloc: bool, size: usize) void {
+    writer.print("{s}={d};\n", .{ if (is_alloc) "alloc" else "free", size }) catch {};
+}
+
+var zprof: Zprof(.{ .writerFn = myLogger }) = .init(allocator, writer);
 const tracked_allocator = zprof.allocator();
 
-const data = try tracked_allocator.alloc(u8, 1024); // prints: Zprof::ALLOC allocated=1024
-tracked_allocator.free(data);                        // prints: Zprof::FREE deallocated=1024
+const data = try tracked_allocator.alloc(u8, 1024); // prints: alloc=1024;
+tracked_allocator.free(data);                        // prints: free=1024;
 ```
 
 ### Detecting Memory Leaks
@@ -138,17 +167,61 @@ if (zprof.profiler.hasLeaks()) {
 }
 ```
 
+### Configuration
+
+`Zprof` accepts a comptime `Config` struct that lets you enable or disable individual metrics and features, reducing overhead for metrics you don't need:
+
+```zig
+pub const Config = struct {
+    thread_safe: bool = false,
+    writerFn: ?*const fn (*std.Io.Writer, bool, usize) void = null,
+
+    allocated: bool = true,   // track total bytes allocated (monotonic)
+    alloc_count: bool = true, // track number of allocations
+    free_count: bool = true,  // track number of deallocations
+    live_peak: bool = true,   // track peak live memory
+    live_bytes: bool = true,  // track current live memory
+};
+```
+
+Example — only track live bytes and leaks, with thread safety:
+
+```zig
+var zprof: Zprof(.{
+    .thread_safe = true,
+    .allocated = false,
+    .alloc_count = false,
+    .free_count = false,
+    .live_peak = false,
+}) = .init(allocator, undefined);
+```
+
 ### Full Profiler API
+
+Access profiling data through `zprof.profiler`. Each metric is a `Counter` and exposes a `.get()` method.
+
+#### Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `allocated` | `Counter` | Total bytes allocated since initialization (monotonic) |
+| `alloc_count` | `Counter` | Number of allocation operations |
+| `free_count` | `Counter` | Number of deallocation operations |
+| `live_peak` | `Counter` | Maximum memory usage at any point |
+| `live_bytes` | `Counter` | Current memory usage |
+
+```zig
+std.debug.print("Allocated: {d}\n", .{zprof.profiler.allocated.get()});
+std.debug.print("Live bytes: {d}\n", .{zprof.profiler.live_bytes.get()});
+std.debug.print("Peak: {d}\n",      .{zprof.profiler.live_peak.get()});
+std.debug.print("Allocs: {d}\n",    .{zprof.profiler.alloc_count.get()});
+std.debug.print("Frees: {d}\n",     .{zprof.profiler.free_count.get()});
+```
 
 #### Methods
 
 | Method | Return type | Description |
 |--------|-------------|-------------|
-| `getAllocated()` | `usize` | Total bytes allocated since initialization |
-| `getAllocCount()` | `usize` | Number of allocation operations |
-| `getFreeCount()` | `usize` | Number of deallocation operations |
-| `getLivePeak()` | `usize` | Maximum memory usage at any point |
-| `getLiveBytes()` | `usize` | Current memory usage |
 | `hasLeaks()` | `bool` | Returns `true` if there are active memory leaks |
 | `reset()` | `void` | Resets all profiling statistics |
 
@@ -158,7 +231,7 @@ if (zprof.profiler.hasLeaks()) {
 
 ```zig
 test "no memory leaks" {
-    var zprof: Zprof(false) = .init(std.testing.allocator, null);
+    var zprof: Zprof(.{}) = .init(std.testing.allocator, undefined);
     const allocator = zprof.allocator();
 
     const data = try allocator.alloc(u8, 1024);
