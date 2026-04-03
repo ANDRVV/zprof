@@ -29,9 +29,7 @@ pub fn Counter(comptime thread_safe: bool, comptime T: type, value: T) type {
     return if (thread_safe) struct {
         const Self = @This();
 
-        value: std.atomic.Value(T) = .init(value),
-        // avoids false sharing
-        _padding: [std.atomic.cache_line - @sizeOf(std.atomic.Value(T))]u8 = undefined,
+        value: std.atomic.Value(T) align(std.atomic.cache_line) = .init(value),
 
         pub fn add(self: *Self, operand: T) void {
             _ = self.value.fetchAdd(operand, .monotonic);
