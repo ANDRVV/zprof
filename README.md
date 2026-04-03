@@ -45,7 +45,7 @@ Run the benchmark with:
 zig build benchmark
 ```
 
-Tested on `cpu=i7-12700H zig-version=0.15.1`
+Benchmarked with `cpu=i7-12700H` (all configs enabled)
 ```
 Alloc/free benchmark [bytes=16 ops=10000000]
 Raw allocator:   tot=80274902ns
