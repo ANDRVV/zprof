@@ -95,7 +95,7 @@ pub fn Profiler(comptime config: Config) type {
         /// Every time memory is freed, this counter increases.
         free_count: if (config.free_count) DefaultCounter else struct {} = .{},
 
-        /// Peak of live bytes.
+        /// Live bytes peak.
         /// Tracks the maximum memory usage at any point during execution.
         live_peak: if (config.live_peak) DefaultCounter else struct {} = .{},
         /// Current live bytes.
