@@ -6,13 +6,13 @@
 //! that wraps any allocator written in Zig.
 //! Tracks allocations, detects memory leaks, and logs
 //! memory changes with optional thread-safe mode.
-//! Version 3.0.1
+//! Version 3.1.1
 //!
 //! Original repository: https://github.com/andrvv/zprof
 
 const std = @import("std");
 
-pub const VERSION = "3.0.1";
+pub const VERSION = "3.1.1";
 
 pub const Config = struct {
     thread_safe: bool = false,

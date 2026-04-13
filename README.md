@@ -1,6 +1,6 @@
 # Zprof - A cross-allocator profiler for Zig
 
-![Version](https://img.shields.io/badge/version-3.0.1-blue)
+![Version](https://img.shields.io/badge/version-3.1.1-blue)
 ![Zig](https://img.shields.io/badge/zig-0.15.1-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -64,10 +64,10 @@ Add `Zprof` to your project's `build.zig.zon`:
 ```zig
 .{
     .name = "my-project",
-    .version = "3.0.1",
+    .version = "3.1.1",
     .dependencies = .{
         .zprof = .{
-            .url = "https://github.com/ANDRVV/zprof/archive/v3.0.1.zip",
+            .url = "https://github.com/ANDRVV/zprof/archive/v3.1.1.zip",
             .hash = "...",
         },
     },

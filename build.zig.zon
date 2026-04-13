@@ -1,6 +1,6 @@
 .{
     .name = .zprof,
-    .version = "3.0.1",
+    .version = "3.1.1",
     .fingerprint = 0xfbea0d44d0b7267,
     .minimum_zig_version = "0.15.1",
     .dependencies = .{},
