@@ -34,11 +34,12 @@ pub fn main() !void {
     // disable all parameters to get the baseline overhead
     // of the wrapper itself, without any bookkeeping
     const config1: Config = .{
-        .alloc_count = false,
-        .live_bytes = false,
         .allocated = false,
+        .freed = false,
+        .alloc_count = false,
         .free_count = false,
-        .live_peak = false,
+        .live_requested = false,
+        .peak_requested = false,
     };
 
     _, _, const baseline_overhead = try stat(config1);

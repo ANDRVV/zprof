@@ -177,11 +177,12 @@ pub const Config = struct {
     thread_safe: bool = false,
     writerFn: ?*const fn (*std.Io.Writer, bool, usize) void = null,
 
-    allocated: bool = true,   // track total bytes allocated (monotonic)
-    alloc_count: bool = true, // track number of allocations
-    free_count: bool = true,  // track number of deallocations
-    live_peak: bool = true,   // track peak live memory
-    live_bytes: bool = true,  // track current live memory
+    allocated: bool = true,      // tracks total bytes allocated
+    freed: bool = true,          // tracks total bytes deallocated
+    alloc_count: bool = true,    // tracks number of allocations
+    free_count: bool = true,     // tracks number of deallocations
+    peak_requested: bool = true, // tracks peak of requested bytes
+    live_requested: bool = true, // tracks non-freed requested bytes
 };
 ```
 
@@ -191,9 +192,10 @@ Example — only track live bytes and leaks, with thread safety:
 var zprof: Zprof(.{
     .thread_safe = true,
     .allocated = false,
+    .freed = .false,
     .alloc_count = false,
     .free_count = false,
-    .live_peak = false,
+    .peak_requested = false,
 }) = .init(allocator, undefined);
 ```
 
@@ -205,16 +207,18 @@ Access profiling data through `zprof.profiler`. Each metric is a `Counter` and e
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `allocated` | `Counter` | Total bytes allocated since initialization (monotonic) |
+| `allocated` | `Counter` | Total bytes allocated since initialization |
+| `freed` | `Counter` | Total bytes deallocated since initialization |
 | `alloc_count` | `Counter` | Number of allocation operations |
 | `free_count` | `Counter` | Number of deallocation operations |
-| `live_peak` | `Counter` | Maximum memory usage at any point |
-| `live_bytes` | `Counter` | Current memory usage |
+| `peak_requested` | `Counter` | Maximum memory usage at any point |
+| `live_requested` | `Counter` | Current memory usage |
 
 ```zig
 std.debug.print("Allocated: {d}\n", .{zprof.profiler.allocated.get()});
-std.debug.print("Live bytes: {d}\n", .{zprof.profiler.live_bytes.get()});
-std.debug.print("Peak: {d}\n",      .{zprof.profiler.live_peak.get()});
+std.debug.print("Freed: {d}\n", .{zprof.profiler.freed.get()});
+std.debug.print("Live bytes: {d}\n", .{zprof.profiler.live_requested.get()});
+std.debug.print("Peak: {d}\n",      .{zprof.profiler.peak_requested.get()});
 std.debug.print("Allocs: {d}\n",    .{zprof.profiler.alloc_count.get()});
 std.debug.print("Frees: {d}\n",     .{zprof.profiler.free_count.get()});
 ```
