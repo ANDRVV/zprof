@@ -8,7 +8,6 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
     const target = b.standardTargetOptions(.{});
 
-    // Creates public dep
     const module = b.addModule("zprof", .{
         .root_source_file = b.path("src/zprof.zig"),
         .target = target,
@@ -35,7 +34,7 @@ pub fn build(b: *std.Build) void {
     });
 
     // for c_allocator
-    exe.linkLibC();
+    exe.root_module.link_libc = true;
 
     const run_benchmark = b.addRunArtifact(exe);
 

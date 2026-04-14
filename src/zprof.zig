@@ -6,13 +6,13 @@
 //! that wraps any allocator written in Zig.
 //! Tracks allocations, detects memory leaks, and logs
 //! memory changes with optional thread-safe mode.
-//! Version 3.1.1
+//! Version 4.0.0
 //!
 //! Original repository: https://github.com/andrvv/zprof
 
 const std = @import("std");
 
-pub const VERSION = "3.1.1";
+pub const VERSION = "4.0.0";
 
 pub const Config = struct {
     thread_safe: bool = false,
@@ -144,9 +144,11 @@ pub fn Zprof(comptime config: Config) type {
         const Self = @This();
 
         child_allocator: std.mem.Allocator,
-        mutex: if (config.thread_safe) std.Thread.Mutex else struct {} = .{},
+        mutex: @TypeOf(mutex_init) = mutex_init,
 
         profiler: Profiler(config),
+
+        const mutex_init = if (config.thread_safe) std.Io.Mutex.init else {};
 
         pub fn init(child_allocator: std.mem.Allocator, writer: *std.Io.Writer) Self {
             return .{
@@ -176,8 +178,8 @@ pub fn Zprof(comptime config: Config) type {
             const self: *Self = @ptrCast(@alignCast(ctx));
 
             const ptr = blk: {
-                if (config.thread_safe) self.mutex.lock();
-                defer if (config.thread_safe) self.mutex.unlock();
+                if (config.thread_safe) std.Io.Threaded.mutexLock(&self.mutex);
+                defer if (config.thread_safe) std.Io.Threaded.mutexUnlock(&self.mutex);
 
                 break :blk self.child_allocator.rawAlloc(n, alignment, ra);
             };
@@ -202,8 +204,8 @@ pub fn Zprof(comptime config: Config) type {
             const old_len = buf.len;
 
             const success = blk: {
-                if (config.thread_safe) self.mutex.lock();
-                defer if (config.thread_safe) self.mutex.unlock();
+                if (config.thread_safe) std.Io.Threaded.mutexLock(&self.mutex);
+                defer if (config.thread_safe) std.Io.Threaded.mutexUnlock(&self.mutex);
 
                 break :blk self.child_allocator.rawResize(
                     buf,
@@ -238,8 +240,8 @@ pub fn Zprof(comptime config: Config) type {
             const old_len = memory.len;
 
             const new_buf = blk: {
-                if (config.thread_safe) self.mutex.lock();
-                defer if (config.thread_safe) self.mutex.unlock();
+                if (config.thread_safe) std.Io.Threaded.mutexLock(&self.mutex);
+                defer if (config.thread_safe) std.Io.Threaded.mutexUnlock(&self.mutex);
 
                 break :blk self.child_allocator.rawRemap(
                     memory,
@@ -272,8 +274,8 @@ pub fn Zprof(comptime config: Config) type {
             const self: *Self = @ptrCast(@alignCast(ctx));
 
             {
-                if (config.thread_safe) self.mutex.lock();
-                defer if (config.thread_safe) self.mutex.unlock();
+                if (config.thread_safe) std.Io.Threaded.mutexLock(&self.mutex);
+                defer if (config.thread_safe) std.Io.Threaded.mutexUnlock(&self.mutex);
 
                 self.child_allocator.rawFree(buf, alignment, ret_addr);
             }
@@ -467,27 +469,35 @@ test "partial leak" {
 }
 
 test "thread safe" {
+    const io = std.testing.io;
     const test_allocator = std.testing.allocator;
+
     var zp: Zprof(.{ .thread_safe = true }) = .init(test_allocator, undefined);
     const allocator = zp.allocator();
 
     const Context = struct {
         ctx_allocator: std.mem.Allocator,
-        fn run(ctx: @This()) void {
-            const buf = ctx.ctx_allocator.alloc(u8, 64) catch return;
-            std.Thread.sleep(1000 * std.time.ns_per_us);
+        ctx_io: std.Io,
+
+        fn run(ctx: @This()) std.Io.Cancelable!void {
+            const buf = ctx.ctx_allocator.alloc(u8, 64) catch return error.Canceled;
             ctx.ctx_allocator.free(buf);
         }
     };
 
-    var threads: [8]std.Thread = undefined;
-    for (&threads) |*t|
-        t.* = try std.Thread.spawn(
-            .{},
-            Context.run,
-            .{Context{ .ctx_allocator = allocator }},
-        );
-    for (&threads) |*t| t.join();
+    var group: std.Io.Group = .init;
+    defer group.cancel(io);
+
+    const ctx: Context = .{
+        .ctx_allocator = allocator,
+        .ctx_io = io,
+    };
+
+    for (0..8) |_| {
+        group.async(io, Context.run, .{ctx});
+    }
+
+    try group.await(io);
 
     try std.testing.expect(!zp.profiler.hasLeaks());
     try std.testing.expectEqual(
