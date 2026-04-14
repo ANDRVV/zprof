@@ -98,16 +98,8 @@ const std = @import("std");
 const Zprof = @import("zprof.zig").Zprof;
 
 pub fn main() !void {
-    var stdout_buf: [4096]u8 = undefined;
-    var stdout_writer = std.fs.File.stdout().writer(&stdout_buf);
-    const stdout = &stdout_writer.interface;
-    defer stdout.flush() catch {};
-
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-
     // 1. Create a profiler by wrapping your allocator with a Config
-    var zprof: Zprof(.{}) = .init(gpa.allocator(), stdout);
+    var zprof: Zprof(.{}) = .init(std.heap.page_allocator, undefined);
     // .{} uses the default config (thread_safe = false, all metrics enabled)
 
     // 2. Use the profiler's allocator instead of your original one
@@ -117,7 +109,7 @@ pub fn main() !void {
     const data = try allocator.alloc(u8, 1024);
     defer allocator.free(data);
 
-    stdout.print("Has leaks: {}\n", .{zprof.profiler.hasLeaks()}) catch {};
+    std.debug.print("Has leaks: {}\n", .{zprof.profiler.hasLeaks()}) catch {};
 }
 ```
 
@@ -154,7 +146,7 @@ var zprof: Zprof(.{ .writerFn = myLogger }) = .init(allocator, writer);
 const tracked_allocator = zprof.allocator();
 
 const data = try tracked_allocator.alloc(u8, 1024); // prints: alloc=1024;
-tracked_allocator.free(data);                        // prints: free=1024;
+tracked_allocator.free(data);                       // prints: free=1024;
 ```
 
 ### Detecting Memory Leaks
@@ -215,12 +207,12 @@ Access profiling data through `zprof.profiler`. Each metric is a `Counter` and e
 | `live_requested` | `Counter` | Current memory usage |
 
 ```zig
-std.debug.print("Allocated: {d}\n", .{zprof.profiler.allocated.get()});
-std.debug.print("Freed: {d}\n", .{zprof.profiler.freed.get()});
+std.debug.print("Allocated: {d}\n",  .{zprof.profiler.allocated.get()});
+std.debug.print("Freed: {d}\n",      .{zprof.profiler.freed.get()});
 std.debug.print("Live bytes: {d}\n", .{zprof.profiler.live_requested.get()});
-std.debug.print("Peak: {d}\n",      .{zprof.profiler.peak_requested.get()});
-std.debug.print("Allocs: {d}\n",    .{zprof.profiler.alloc_count.get()});
-std.debug.print("Frees: {d}\n",     .{zprof.profiler.free_count.get()});
+std.debug.print("Peak: {d}\n",       .{zprof.profiler.peak_requested.get()});
+std.debug.print("Allocs: {d}\n",     .{zprof.profiler.alloc_count.get()});
+std.debug.print("Frees: {d}\n",      .{zprof.profiler.free_count.get()});
 ```
 
 #### Methods
