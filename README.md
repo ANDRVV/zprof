@@ -109,7 +109,7 @@ pub fn main() !void {
     const data = try allocator.alloc(u8, 1024);
     defer allocator.free(data);
 
-    std.debug.print("Has leaks: {}\n", .{zprof.profiler.hasLeaks()}) catch {};
+    std.debug.print("Has leaks: {}\n", .{zprof.profiler.hasLeaks()});
 }
 ```
 
