@@ -6,13 +6,13 @@
 //! that wraps any allocator written in Zig.
 //! Tracks allocations, detects memory leaks, and logs
 //! memory changes with optional thread-safe mode.
-//! Version 4.0.0
+//! Version 4.0.1
 //!
 //! Original repository: https://github.com/andrvv/zprof
 
 const std = @import("std");
 
-pub const VERSION = "4.0.0";
+pub const VERSION = "4.0.1";
 
 pub const Config = struct {
     thread_safe: bool = false,
@@ -86,7 +86,7 @@ pub fn Profiler(comptime config: Config) type {
         const DefaultCounter = Counter(config.thread_safe, usize, 0);
 
         allocated: if (config.allocated) DefaultCounter else struct {} = .{},
-        freed: if (config.allocated) DefaultCounter else struct {} = .{},
+        freed: if (config.freed) DefaultCounter else struct {} = .{},
         alloc_count: if (config.alloc_count) DefaultCounter else struct {} = .{},
         free_count: if (config.free_count) DefaultCounter else struct {} = .{},
         peak_requested: if (config.peak_requested) DefaultCounter else struct {} = .{},
