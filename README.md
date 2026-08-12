@@ -2,7 +2,7 @@
 
 <div align="center"> 
   
-  ![Version](https://img.shields.io/badge/version-4.1.0-blue)
+  ![Version](https://img.shields.io/badge/version-4.1.1-blue)
   ![Zig](https://img.shields.io/badge/zig-0.15.1-orange)
   ![License](https://img.shields.io/badge/license-MIT-green)
   
@@ -68,10 +68,10 @@ Add `Zprof` to your project's `build.zig.zon`:
 ```zig
 .{
     .name = "my-project",
-    .version = "4.1.0",
+    .version = "4.1.1",
     .dependencies = .{
         .zprof = .{
-            .url = "https://github.com/ANDRVV/zprof/archive/v4.1.0.zip",
+            .url = "https://github.com/ANDRVV/zprof/archive/v4.1.1.zip",
             .hash = "...",
         },
     },
