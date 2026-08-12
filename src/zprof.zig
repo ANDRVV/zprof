@@ -33,6 +33,8 @@ pub const Config = struct {
         .peak_requested = true,
         .live_requested = true,
     };
+
+    pub const all_disabled: Config = std.mem.zeroInit(Config, .{});
 };
 
 pub fn Counter(comptime thread_safe: bool, comptime T: type, value: T) type {
