@@ -131,7 +131,7 @@ pub fn Profiler(comptime config: Config) type {
             return if (config.live_requested)
                 self.live_requested.get() != 0
             else if (config.allocated and config.freed)
-                self.allocated != self.freed
+                self.allocated.get() != self.freed.get()
             else
                 @panic(
                     \\ Zprof: to call hasLeaks, you must enable live_requested
