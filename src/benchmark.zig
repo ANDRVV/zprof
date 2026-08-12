@@ -52,7 +52,7 @@ pub fn main() !void {
     _, _, const baseline_overhead = try stat(io, config1);
 
     // all parameters are enabled by default
-    const config2: Config = .{};
+    const config2: Config = .default;
 
     const tot_raw_allocator, const tot_wrapped_allocator, const overhead = try stat(io, config2);
 

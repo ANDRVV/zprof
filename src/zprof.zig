@@ -6,24 +6,33 @@
 //! that wraps any allocator written in Zig.
 //! Tracks allocations, detects memory leaks, and logs
 //! memory changes with optional thread-safe mode.
-//! Version 4.0.1
+//! Version 4.1.1
 //!
 //! Original repository: https://github.com/andrvv/zprof
 
 const std = @import("std");
 
-pub const VERSION = "4.0.1";
+pub const VERSION = "4.1.1";
 
 pub const Config = struct {
     thread_safe: bool = false,
     writerFn: ?*const fn (*std.Io.Writer, bool, usize) void = null,
 
-    allocated: bool = true,
-    freed: bool = true,
-    alloc_count: bool = true,
-    free_count: bool = true,
-    peak_requested: bool = true,
-    live_requested: bool = true,
+    allocated: bool,
+    freed: bool,
+    alloc_count: bool,
+    free_count: bool,
+    peak_requested: bool,
+    live_requested: bool,
+
+    pub const default: Config = .{
+        .allocated = true,
+        .freed = true,
+        .alloc_count = true,
+        .free_count = true,
+        .peak_requested = true,
+        .live_requested = true,
+    };
 };
 
 pub fn Counter(comptime thread_safe: bool, comptime T: type, value: T) type {
@@ -302,7 +311,7 @@ fn absDiff(a: usize, b: usize) struct { std.math.Order, usize } {
 
 test "initial state" {
     const test_allocator = std.testing.allocator;
-    var zp: Zprof(.{}) = .init(test_allocator, undefined);
+    var zp: Zprof(.default) = .init(test_allocator, undefined);
 
     try std.testing.expectEqual(0, zp.profiler.allocated.get());
     try std.testing.expectEqual(0, zp.profiler.freed.get());
@@ -315,7 +324,7 @@ test "initial state" {
 
 test "reset" {
     const test_allocator = std.testing.allocator;
-    var zp: Zprof(.{}) = .init(test_allocator, undefined);
+    var zp: Zprof(.default) = .init(test_allocator, undefined);
     const allocator = zp.allocator();
 
     const data = try allocator.alloc(u8, 64);
@@ -333,7 +342,7 @@ test "reset" {
 
 test "live bytes" {
     const test_allocator = std.testing.allocator;
-    var zp: Zprof(.{}) = .init(test_allocator, undefined);
+    var zp: Zprof(.default) = .init(test_allocator, undefined);
     const allocator = zp.allocator();
 
     try std.testing.expectEqual(0, zp.profiler.live_requested.get());
@@ -357,7 +366,7 @@ test "live bytes" {
 
 test "partial free" {
     const test_allocator = std.testing.allocator;
-    var zp: Zprof(.{}) = .init(test_allocator, undefined);
+    var zp: Zprof(.default) = .init(test_allocator, undefined);
     const allocator = zp.allocator();
 
     const a = try allocator.alloc(u8, 100);
@@ -374,7 +383,7 @@ test "partial free" {
 
 test "alloc count" {
     const test_allocator = std.testing.allocator;
-    var zp: Zprof(.{}) = .init(test_allocator, undefined);
+    var zp: Zprof(.default) = .init(test_allocator, undefined);
     const allocator = zp.allocator();
 
     const a = try allocator.alloc(u8, 32);
@@ -394,7 +403,7 @@ test "alloc count" {
 
 test "allocated is monotonic" {
     const test_allocator = std.testing.allocator;
-    var zp: Zprof(.{}) = .init(test_allocator, undefined);
+    var zp: Zprof(.default) = .init(test_allocator, undefined);
     const allocator = zp.allocator();
 
     const a = try allocator.alloc(u8, 128);
@@ -412,7 +421,7 @@ test "allocated is monotonic" {
 
 test "live peak" {
     const test_allocator = std.testing.allocator;
-    var zp: Zprof(.{}) = .init(test_allocator, undefined);
+    var zp: Zprof(.default) = .init(test_allocator, undefined);
     const allocator = zp.allocator();
 
     const a = try allocator.alloc(u8, 256);
@@ -429,7 +438,7 @@ test "live peak" {
 
 test "live peak on resize" {
     const test_allocator = std.testing.allocator;
-    var zp: Zprof(.{}) = .init(test_allocator, undefined);
+    var zp: Zprof(.default) = .init(test_allocator, undefined);
     const allocator = zp.allocator();
 
     var data = try allocator.alloc(u8, 64);
@@ -445,7 +454,7 @@ test "live peak on resize" {
 
 test "memory leak" {
     const test_allocator = std.testing.allocator;
-    var zp: Zprof(.{}) = .init(test_allocator, undefined);
+    var zp: Zprof(.default) = .init(test_allocator, undefined);
     const allocator = zp.allocator();
 
     const data = try allocator.alloc(u8, 8);
@@ -457,7 +466,7 @@ test "memory leak" {
 
 test "partial leak" {
     const test_allocator = std.testing.allocator;
-    var zp: Zprof(.{}) = .init(test_allocator, undefined);
+    var zp: Zprof(.default) = .init(test_allocator, undefined);
     const allocator = zp.allocator();
 
     const a = try allocator.alloc(u8, 16);
@@ -472,7 +481,9 @@ test "thread safe" {
     const io = std.testing.io;
     const test_allocator = std.testing.allocator;
 
-    var zp: Zprof(.{ .thread_safe = true }) = .init(test_allocator, undefined);
+    comptime var config: Config = .default;
+    config.thread_safe = true;
+    var zp: Zprof(config) = .init(test_allocator, undefined);
     const allocator = zp.allocator();
 
     const Context = struct {
@@ -522,7 +533,9 @@ test "writer" {
         }
     }.print;
 
-    var zp: Zprof(.{ .writerFn = print }) = .init(test_allocator, writer);
+    comptime var config: Config = .default;
+    config.writerFn = print;
+    var zp: Zprof(config) = .init(test_allocator, writer);
     const allocator = zp.allocator();
 
     const ptr = try allocator.alloc(u8, 32);

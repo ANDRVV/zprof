@@ -1,6 +1,6 @@
 # Zprof - A cross-allocator profiler for Zig
 
-![Version](https://img.shields.io/badge/version-4.0.1-blue)
+![Version](https://img.shields.io/badge/version-4.1.1-blue)
 ![Zig](https://img.shields.io/badge/zig-0.15.1-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -64,10 +64,10 @@ Add `Zprof` to your project's `build.zig.zon`:
 ```zig
 .{
     .name = "my-project",
-    .version = "4.0.1",
+    .version = "4.1.1",
     .dependencies = .{
         .zprof = .{
-            .url = "https://github.com/ANDRVV/zprof/archive/v4.0.1.zip",
+            .url = "https://github.com/ANDRVV/zprof/archive/v4.1.1.zip",
             .hash = "...",
         },
     },
@@ -99,7 +99,7 @@ const Zprof = @import("zprof.zig").Zprof;
 
 pub fn main() !void {
     // 1. Create a profiler by wrapping your allocator with a Config
-    var zprof: Zprof(.{}) = .init(std.heap.page_allocator, undefined);
+    var zprof: Zprof(.default) = .init(std.heap.page_allocator, undefined);
     // .{} uses the default config (thread_safe = false, all metrics enabled)
 
     // 2. Use the profiler's allocator instead of your original one
@@ -120,7 +120,7 @@ pub fn main() !void {
 To start profiling memory usage, simply wrap your allocator with `Zprof`:
 
 ```zig
-var zprof: Zprof(.{}) = .init(allocator, undefined); // .{} uses default config
+var zprof: Zprof(.default) = .init(allocator, undefined); // .{} uses default config
 const tracked_allocator = zprof.allocator();
 ```
 
@@ -129,7 +129,9 @@ const tracked_allocator = zprof.allocator();
 To use `Zprof` with mutex protection on the child allocator, enable thread-safe mode via `Config`:
 
 ```zig
-var zprof: Zprof(.{ .thread_safe = true }) = .init(allocator, undefined);
+comptime var config: ZprofConfig = .default;
+config.thread_safe = true;
+var zprof: Zprof(config) = .init(allocator, undefined);
 const tracked_allocator = zprof.allocator();
 ```
 
@@ -142,7 +144,9 @@ fn myLogger(writer: *std.Io.Writer, is_alloc: bool, size: usize) void {
     writer.print("{s}={d};\n", .{ if (is_alloc) "alloc" else "free", size }) catch {};
 }
 
-var zprof: Zprof(.{ .writerFn = myLogger }) = .init(allocator, writer);
+comptime var config: ZprofConfig = .default;
+config.writerFn = myLogger;
+var zprof: Zprof(config) = .init(allocator, writer);
 const tracked_allocator = zprof.allocator();
 
 const data = try tracked_allocator.alloc(u8, 1024); // prints: alloc=1024;
@@ -228,7 +232,7 @@ std.debug.print("Frees: {d}\n",      .{zprof.profiler.free_count.get()});
 
 ```zig
 test "no memory leaks" {
-    var zprof: Zprof(.{}) = .init(std.testing.allocator, undefined);
+    var zprof: Zprof(.default) = .init(std.testing.allocator, undefined);
     const allocator = zprof.allocator();
 
     const data = try allocator.alloc(u8, 1024);
