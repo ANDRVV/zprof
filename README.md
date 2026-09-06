@@ -91,7 +91,7 @@ exe.root_module.addImport("zprof", zprof_dep.module("zprof"));
 
 Else you can put `zprof.zig` in your project's path and import it.
 
-Zig version 0.15.1 or newer is required to compile Zprof.
+Zig version 0.16.0 or newer is required to compile Zprof.
 
 ## 🚀 Quick Start
 
