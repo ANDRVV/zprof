@@ -3,7 +3,7 @@
 <div align="center"> 
   
   ![Version](https://img.shields.io/badge/version-4.1.1-blue)
-  ![Zig](https://img.shields.io/badge/zig-0.15.1-orange)
+  ![Zig](https://img.shields.io/badge/zig-0.16.0-orange)
   ![License](https://img.shields.io/badge/license-MIT-green)
   
 </div>
