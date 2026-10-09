@@ -6,13 +6,13 @@
 //! that wraps any allocator written in Zig.
 //! Tracks allocations, detects memory leaks, and logs
 //! memory changes with optional thread-safe mode.
-//! Version 4.1.1
+//! Version 5.0.0
 //!
 //! Original repository: https://github.com/andrvv/zprof
 
 const std = @import("std");
 
-pub const VERSION = "4.1.1";
+pub const VERSION = "5.0.0";
 
 pub const Config = struct {
     thread_safe: bool = false,
@@ -189,7 +189,7 @@ pub fn Zprof(comptime config: Config) type {
             const self: *Self = @ptrCast(@alignCast(ctx));
 
             const ptr = blk: {
-                if (config.thread_safe) std.Io.Threaded.mutexLock(&self.mutex);
+                if (config.thread_safe) std.Io.Threaded.mutexLockUncancelable(&self.mutex);
                 defer if (config.thread_safe) std.Io.Threaded.mutexUnlock(&self.mutex);
 
                 break :blk self.child_allocator.rawAlloc(n, alignment, ra);
@@ -215,7 +215,7 @@ pub fn Zprof(comptime config: Config) type {
             const old_len = buf.len;
 
             const success = blk: {
-                if (config.thread_safe) std.Io.Threaded.mutexLock(&self.mutex);
+                if (config.thread_safe) std.Io.Threaded.mutexLockUncancelable(&self.mutex);
                 defer if (config.thread_safe) std.Io.Threaded.mutexUnlock(&self.mutex);
 
                 break :blk self.child_allocator.rawResize(
@@ -251,7 +251,7 @@ pub fn Zprof(comptime config: Config) type {
             const old_len = memory.len;
 
             const new_buf = blk: {
-                if (config.thread_safe) std.Io.Threaded.mutexLock(&self.mutex);
+                if (config.thread_safe) std.Io.Threaded.mutexLockUncancelable(&self.mutex);
                 defer if (config.thread_safe) std.Io.Threaded.mutexUnlock(&self.mutex);
 
                 break :blk self.child_allocator.rawRemap(
@@ -285,7 +285,7 @@ pub fn Zprof(comptime config: Config) type {
             const self: *Self = @ptrCast(@alignCast(ctx));
 
             {
-                if (config.thread_safe) std.Io.Threaded.mutexLock(&self.mutex);
+                if (config.thread_safe) std.Io.Threaded.mutexLockUncancelable(&self.mutex);
                 defer if (config.thread_safe) std.Io.Threaded.mutexUnlock(&self.mutex);
 
                 self.child_allocator.rawFree(buf, alignment, ret_addr);

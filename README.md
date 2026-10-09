@@ -1,9 +1,9 @@
 # Zprof - A cross-allocator profiler for Zig
 
 <div align="center"> 
-  
-  ![Version](https://img.shields.io/badge/version-4.1.1-blue)
-  ![Zig](https://img.shields.io/badge/zig-0.16.0-orange)
+
+  ![Version](https://img.shields.io/badge/version-5.0.0-blue)
+  ![Zig](https://img.shields.io/badge/zig-0.17.0-orange)
   ![License](https://img.shields.io/badge/license-MIT-green)
   
 </div>
@@ -68,10 +68,10 @@ Add `Zprof` to your project's `build.zig.zon`:
 ```zig
 .{
     .name = "my-project",
-    .version = "4.1.1",
+    .version = "5.0.0",
     .dependencies = .{
         .zprof = .{
-            .url = "https://github.com/ANDRVV/zprof/archive/v4.1.1.zip",
+            .url = "https://github.com/ANDRVV/zprof/archive/v5.0.0.zip",
             .hash = "...",
         },
     },
@@ -91,7 +91,7 @@ exe.root_module.addImport("zprof", zprof_dep.module("zprof"));
 
 Else you can put `zprof.zig` in your project's path and import it.
 
-Zig version 0.16.0 or newer is required to compile Zprof.
+Zig version 0.17.0 or newer is required to compile Zprof.
 
 ## 🚀 Quick Start
 
